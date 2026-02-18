@@ -13,10 +13,13 @@ let servicePercentPrice;
 let service1;
 let service2;
 
+// Проверяем, является ли введенное значение корректным числом. 
+// Отсекаем null (нажатием кнопки «Отмена»), пустые строки и пробелы.
 const isNumber = function(num) {
-  return !isNaN(parseFloat(num)) && isFinite(num) && num !== null && num.trim() !== "";
+  return num !== null && num.trim() !== "" && !isNaN(parseFloat(num)) && isFinite(num);
 }
 
+// Собираем базовую информацию о проекте:
 const asking = function () {
   title = prompt("Как называется ваш проект?", "Калькулятор верстки");
   screens = prompt("Какие типы экранов нужно разработать?", "Простые, сложные");
@@ -25,12 +28,12 @@ const asking = function () {
     screenPrice = prompt("Сколько будет стоить данная работа?");
   } while (!isNumber(screenPrice)) 
 
-    // screenPrice = +screenPrice;
+    screenPrice = +screenPrice.trim();
 
   adaptive = confirm("Нужен ли адаптив на сайте?");
 }
 
-// возвращаем сумму всех дополнительных услуг
+// возвращаем сумму всех дополнительных услуг и проверяем цену на число
 const getAllServicePrices = function () {
   let sum = 0
 
@@ -48,31 +51,35 @@ const getAllServicePrices = function () {
       servicePrice = prompt("Сколько это будет стоить?");
     } while (!isNumber(servicePrice));
 
+    servicePrice = +servicePrice.trim();
     sum += +servicePrice;
   }
 
   return sum
 }
 
+// Выводим в консоль значение переменной и её тип данных (строка, число, булево и ...).
 const showTypeOf = function(variable) {
   console.log(variable, typeof variable);
 }
 
-// возвращаем сумму стоимости верстки и стоимости доп услуг (screenPrice + allServicePrices)
+// Возвращаем(складываем) сумму стоимости верстки и стоимости доп услуг (screenPrice + allServicePrices)
 const getFullPrice = function () {
-  return (+screenPrice) + allServicePrices;
+  return screenPrice + allServicePrices;
 }
 
-// возвращаем итоговую стоимость за вычетом процента отката
+// Высчитываем итоговую стоимость за вычетом процента отката и округляем результат до целого числа вверх
 const getServicePercentPrice = function () {
   return Math.ceil(fullPrice - (fullPrice * (rollback / 100)));
 }
 
-// возвращаем title меняя его таким образом: первый символ с большой буквы, остальные с маленькой, убираем лишнии пробелы"
+// Возвращаем title меняя его таким образом: первый символ с большой буквы, остальные с маленькой, убираем лишнии пробелы
 const getTitle = function() {
   return title.trim()[0].toUpperCase() + title.trim().substr(1).toLowerCase()
 }
 
+// Проверяем итоговую стоимость (fullPrice) и возвращаем строку с инфо. о том, 
+// какую скидку получит клиент в зависимости от бюджета.
 const getRollbackMessage = function(price) {
   if (price >= 30000) {
     return "Даем скидку в 10%"
@@ -85,7 +92,7 @@ const getRollbackMessage = function(price) {
   }
 }
 
-// Вызов функций
+// Вызов функций:
 asking();
 allServicePrices = getAllServicePrices();
 fullPrice = getFullPrice();
@@ -96,7 +103,7 @@ showTypeOf(title);
 showTypeOf(screenPrice);
 showTypeOf(adaptive);
 
-// Вывод в консоль
+// Вывод в консоль:
 console.log("allServicePrices", allServicePrices);
 
 console.log(getRollbackMessage(fullPrice));
@@ -107,7 +114,8 @@ console.log("Адаптив сайта:", typeof adaptive);
 console.log("Типы экранов:", screens.length);
 console.log("Стоимость за вычетом отката посреднику", servicePercentPrice);
 
-console.log("Стоимость экранов " + screenPrice + " руб и Стоимость разработки сайта " + fullPrice + " руб");
-
+// Вывод, что бы цифры подсвечивались
+console.log("Стоимость экранов", screenPrice, "руб и Стоимость разработки сайта", fullPrice, "руб");
+// console.log("Стоимость экранов " + screenPrice + " руб и Стоимость разработки сайта " + fullPrice + " руб");
 
 
