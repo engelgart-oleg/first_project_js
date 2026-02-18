@@ -1,5 +1,6 @@
 "use strict";
 
+// Переменные
 let title;
 let screens;
 let screenPrice;
