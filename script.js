@@ -31,30 +31,49 @@ const appData = {
     return !isNaN(parseFloat(num)) && isFinite(num);
   },
 
+  // Проверка на строку (не пропускает только цифры)
+  isString: function (str) {
+    // Проверяем: не null, не пусто, и при превращении в число выдает NaN (значит, там есть буквы)
+    return str !== null && str.trim() !== "" && isNaN(str);
+  },
+
   // Сбор информации о проекте:
   asking: function () {
-    appData.title = prompt("Как называется ваш проект?", "Калькулятор верстки");
+    // 1. Валидация названия проекта
+    do {
+      appData.title = prompt("Как называется ваш проект?", "Калькулятор верстки");
+    } while (!appData.isString(appData.title));
 
     for (let i = 0; i < 2; i++) {
-      let name = prompt("Какие типы экранов нужно разработать?");
-      let price = 0;
+      let name;
+      // 2. Валидация названия экрана
+      do {
+        name = prompt("Какие типы экранов нужно разработать?");
+      } while (!appData.isString(name));
 
+      let price = 0;
+      // 3. Валидация стоимости экрана
       do {
         price = prompt("Сколько будет стоить данная работа?");
       } while (!appData.isNumber(price));
 
-      appData.screens.push({id: i, name: name, price: price})
+      appData.screens.push({ id: i, name: name.trim(), price: +price });
     }
 
     for (let i = 0; i < 2; i++) {
-      let name = prompt("Какой дополнительный тип услуги нужен?");
-      let price = 0;
+      let name;
+      // 4. Валидация названия доп. услуги
+      do {
+        name = prompt("Какой дополнительный тип услуги нужен?");
+      } while (!appData.isString(name));
 
+      let price = 0;
+      // 5. Валидация стоимости доп. услуги
       do {
         price = prompt("Сколько это будет стоить?");
       } while (!appData.isNumber(price));
 
-      appData.services[name] = +price;
+      appData.services[name.trim()] = +price;
     }
 
     appData.adaptive = confirm("Нужен ли адаптив на сайте?");
@@ -105,7 +124,8 @@ const appData = {
     // Обязательные выводы по условию
     console.log("fullPrice", appData.fullPrice);
     console.log("Откат", appData.servicePercentPrice);
-    console.log(appData.screens);
+    console.log("Массив экранов:", appData.screens);
+    // console.log("Объект услуг:", appData.services);
   }  
 };
 
