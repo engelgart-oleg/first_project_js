@@ -73,7 +73,16 @@ const appData = {
         price = prompt("Сколько это будет стоить?");
       } while (!appData.isNumber(price));
 
-      appData.services[name.trim()] = +price;
+      // 1) ЛОГИКА УНИКАЛЬНОСТИ КЛЮЧЕЙ
+      let serviceName = name.trim();
+      // Если такая услуга уже есть в объекте services
+      if (appData.services[serviceName] !== undefined) {
+        // Создаем уникальный ключ, например: "Верстка (1)"
+        serviceName = `${serviceName} (${i})`;
+      }
+
+      appData.services[serviceName] = +price;
+      // appData.services[name.trim()] = +price;
     }
 
     appData.adaptive = confirm("Нужен ли адаптив на сайте?");
@@ -81,13 +90,15 @@ const appData = {
 
   // высчитываем стоимость услуг и экранов
   addPrices: function () {
-    for (let screen of appData.screens) {
-      appData.screenPrice += +screen.price
-    }
+    // 2) ИСПОЛЬЗОВАНИЕ REDUCE для расчета screenPrice
+    appData.screenPrice = appData.screens.reduce(function(sum, screen) {
+      return sum + screen.price;
+    }, 0);
 
-    // Расчет суммы доп. услуг
+    // Расчет суммы доп. услуг (сбрасываем в 0 перед расчетом на всякий случай)
+    appData.allServicePrices = 0;
     for (let key in appData.services) {
-      appData.allServicePrices += appData.services[key]
+      appData.allServicePrices += appData.services[key];
     }
   },  
 
@@ -125,7 +136,8 @@ const appData = {
     console.log("fullPrice", appData.fullPrice);
     console.log("Откат", appData.servicePercentPrice);
     console.log("Массив экранов:", appData.screens);
-    // console.log("Объект услуг:", appData.services);
+    console.log("Стоимость всех экранов:", appData.screenPrice);
+    console.log("Объект услуг:", appData.services);
   }  
 };
 
