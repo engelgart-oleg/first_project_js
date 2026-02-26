@@ -131,15 +131,15 @@ const appData = {
   },
 
   // Вывод информации в консоль
-  // logger: function () {
+  logger: function () {
     // Обязательные выводы по условию
-    // console.log("fullPrice", appData.fullPrice);
-    // console.log("Откат", appData.servicePercentPrice);
-    // console.log("Массив экранов:", appData.screens);
-    // console.log("Стоимость всех экранов:", appData.screenPrice);
-    // console.log("Объект услуг:", appData.services);
-  // }  
+    console.log("fullPrice", appData.fullPrice);
+    console.log("Откат", appData.servicePercentPrice);
+    console.log("Массив экранов:", appData.screens);
+    console.log("Стоимость всех экранов:", appData.screenPrice);
+    console.log("Объект услуг:", appData.services);
+  }  
 };
 
 // Вызов вне объекта
-// appData.start();
+appData.start();
