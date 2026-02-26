@@ -1,5 +1,55 @@
 "use strict";
 
+// 1. Заголовок H1
+const mainTitle = document.getElementsByTagName('h1')[0];
+const mainTitleText = mainTitle.textContent;
+console.log(mainTitle, mainTitleText);
+
+// 2. кнопки "Рассчитать" и "Сброс"
+const handlerBtns = document.getElementsByClassName("handler_btn");
+console.log(handlerBtns);
+
+// 3. Кнопка +
+const plusBtn = document.querySelector(".screen-btn");
+console.log(plusBtn);
+
+// 4. Все элементы с классом other-items
+const percentItems = document.querySelectorAll(".other-items.percent");
+const numItems = document.querySelectorAll(".other-items.number");
+console.log(percentItems, numItems);
+
+// 5. Получить input type=range
+const range = document.querySelector(".rollback [type=range]");
+console.log(range);
+
+// 6. Получить span с классом range-value
+const rangeValue = document.querySelector(".rollback .range-value");
+console.log(rangeValue);
+
+// 7. Получить все инпуты с классом total-input
+// Получаем коллекцию:
+const totalInputsCollection = document.getElementsByClassName("total-input");
+
+// Распределяем коллекцию по отдельным переменным(элементам)
+const totalFullPrice = totalInputsCollection[0];
+const totalScreenPrice = totalInputsCollection[1];
+const totalServicePrice = totalInputsCollection[2];
+const totalRollbackPrice = totalInputsCollection[3];
+const totalFullPriceMinusRollback = totalInputsCollection[4];
+
+console.log(
+totalFullPrice,
+totalScreenPrice,
+totalServicePrice,
+totalRollbackPrice,
+totalFullPriceMinusRollback,
+);
+
+// 8. Получить все блоки с классом screen
+let screens = document.querySelectorAll(".screen");
+console.log(screens);
+
+
 const appData = {
   // Свойства объекта с изначальными значениями: (строка '', number, boolean, объект {})
   title: '',
@@ -13,7 +63,7 @@ const appData = {
   services: {},
 
   // Метод управления программой
-  start: function () {
+  start: function () {    
     appData.asking(); // Сбор данных
     appData.addPrices();
     
@@ -132,7 +182,6 @@ const appData = {
 
   // Вывод информации в консоль
   logger: function () {
-    // Обязательные выводы по условию
     console.log("fullPrice", appData.fullPrice);
     console.log("Откат", appData.servicePercentPrice);
     console.log("Массив экранов:", appData.screens);
