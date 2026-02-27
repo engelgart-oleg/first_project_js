@@ -33,6 +33,7 @@ const appData = {
   servicePercentPrice: 0,
   servicesPercent: {},
   servicesNumber: {},
+  isStart: false, // Флаг: был ли запущен расчет
 
   init: function () {
     appData.addTitle();
@@ -45,6 +46,14 @@ const appData = {
       const value = event.target.value;
       inputRangeValue.textContent = value + '%'; // Меняем текст в span
       appData.rollback = +value;                 // Записываем в свойство объекта
+
+      // Если расчет уже был запущен, обновляем значение отката в реальном времени
+      if (appData.isStart) {
+        // Пересчитываем только откат
+        appData.servicePercentPrice = Math.ceil(appData.fullPrice - (appData.fullPrice * (appData.rollback / 100)));
+        // Обновляем только поле отката на экране
+        totalCountRollback.value = appData.servicePercentPrice;
+      }
     });
 
     //  Поиск первого инпута для метода blockNonNumbers
@@ -92,8 +101,9 @@ const appData = {
     appData.addScreens();
     appData.addServices();
     appData.addPrices();
-    // appData.logger();
     appData.showResult();
+    appData.isStart = true; // Теперь знаем, что расчет произведен
+    // appData.logger(); 
   },
 
   showResult: function () {
