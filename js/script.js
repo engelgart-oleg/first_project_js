@@ -1,5 +1,24 @@
 "use strict";
 
+const title = document.getElementsByTagName('h1')[0];
+const buttonPlus = document.querySelector(".screen-btn");
+const otherItemsPercent = document.querySelectorAll(".other-items.percent");
+const otherItemsNumber = document.querySelectorAll(".other-items.number");
+
+const inputRange = document.querySelector(".rollback [type=range]");
+const inputRangeValue = document.querySelector(".rollback .range-value");
+
+const startBtn = document.getElementsByClassName("handler_btn")[0];
+const resetBtn = document.getElementsByClassName("handler_btn")[1];
+
+const total = document.getElementsByClassName("total-input")[0];
+const totalCount = document.getElementsByClassName("total-input")[1];
+const totalCountOther = document.getElementsByClassName("total-input")[2];
+const fullTotalCount = document.getElementsByClassName("total-input")[3];
+const totalCountRollback = document.getElementsByClassName("total-input")[4];
+
+let screens = document.querySelectorAll(".screen");
+
 const appData = {
   // Свойства объекта с изначальными значениями: (строка '', number, boolean, объект {})
   title: '',
@@ -7,28 +26,86 @@ const appData = {
   screenPrice: 0,
   adaptive: true,
   rollback: 10,
-  allServicePrices: 0,
+  servicePricesPercent: 0,
+  servicePricesNumber: 0,
   fullPrice: 0,
   servicePercentPrice: 0,
-  services: {},
+  servicesPercent: {},
+  servicesNumber: {},
 
-  // Метод управления программой
-  start: function () {
-    appData.asking(); // Сбор данных
-    appData.addPrices();
-    
-    // Переопределение (расчет) свойств
-    appData.getFullPrice();
-    appData.getServicePercentPrice();
-    appData.getTitle();
+  init: function () {
+    appData.addTitle();
 
-    // Запуск логирования после всех расчетов
-    appData.logger();
+    startBtn.addEventListener('click', appData.start);
+    buttonPlus.addEventListener('click', appData.addScreenBlock);
+  },
+  addTitle: function () {
+    // <title>Document</title> переименовали в Калькулятор верстки
+    document.title = title.textContent;   
   },
 
-  // Проверка на число:
-  isNumber: function (num) {
-    return !isNaN(parseFloat(num)) && isFinite(num);
+  // Метод управления программой
+  start: function () {    
+    appData.addScreens();
+    appData.addServices();
+
+    appData.addPrices();
+    // appData.getServicePercentPrice();
+
+    // appData.logger();
+    appData.showResult();
+  },
+
+  showResult: function () {
+    total.value = appData.screenPrice;
+    totalCountOther.value = appData.servicePricesPercent + appData.servicePricesNumber;
+    fullTotalCount.value = appData.fullPrice;
+  },
+
+  addScreens: function () {
+    let screens = document.querySelectorAll(".screen");
+
+    screens.forEach(function (screen, index) {
+      const select = screen.querySelector('select');
+      const input = screen.querySelector('input');
+      const selectName = select.options[select.selectedIndex].textContent;
+
+      appData.screens.push({
+        id: index,
+        name: selectName.trim(),
+        price: +select.value * +input.value
+      });      
+    })   
+    console.log(appData.screens);
+  },
+
+  addServices: function () {
+    otherItemsPercent.forEach(function (item) {
+      const check = item.querySelector('input[type=checkbox]');
+      const label = item.querySelector('label');
+      const input = item.querySelector('input[type=text]');
+
+      if (check.checked) {
+        appData.servicesPercent[label.textContent] = +input.value;
+      }   
+    })
+
+    otherItemsNumber.forEach(function (item) {
+      const check = item.querySelector('input[type=checkbox]');
+      const label = item.querySelector('label');
+      const input = item.querySelector('input[type=text]');
+
+      if (check.checked) {
+        appData.servicesNumber[label.textContent] = +input.value;
+      }   
+    })
+  },
+
+  addScreenBlock: function () {
+    const cloneScreen = screens[0].cloneNode(true); 
+
+    console.log(cloneScreen);  
+    screens[screens.length - 1].after(cloneScreen);
   },
 
   // Проверка на строку (не пропускает только цифры)
@@ -37,84 +114,26 @@ const appData = {
     return str !== null && str.trim() !== "" && isNaN(str);
   },
 
-  // Сбор информации о проекте:
-  asking: function () {
-    // 1. Валидация названия проекта
-    do {
-      appData.title = prompt("Как называется ваш проект?", "Калькулятор верстки");
-    } while (!appData.isString(appData.title));
-
-    for (let i = 0; i < 2; i++) {
-      let name;
-      // 2. Валидация названия экрана
-      do {
-        name = prompt("Какие типы экранов нужно разработать?");
-      } while (!appData.isString(name));
-
-      let price = 0;
-      // 3. Валидация стоимости экрана
-      do {
-        price = prompt("Сколько будет стоить данная работа?");
-      } while (!appData.isNumber(price));
-
-      appData.screens.push({ id: i, name: name.trim(), price: +price });
-    }
-
-    for (let i = 0; i < 2; i++) {
-      let name;
-      // 4. Валидация названия доп. услуги
-      do {
-        name = prompt("Какой дополнительный тип услуги нужен?");
-      } while (!appData.isString(name));
-
-      let price = 0;
-      // 5. Валидация стоимости доп. услуги
-      do {
-        price = prompt("Сколько это будет стоить?");
-      } while (!appData.isNumber(price));
-
-      // 1) ЛОГИКА УНИКАЛЬНОСТИ КЛЮЧЕЙ
-      let serviceName = name.trim();
-      // Если такая услуга уже есть в объекте services
-      if (appData.services[serviceName] !== undefined) {
-        // Создаем уникальный ключ, например: "Верстка (1)"
-        serviceName = `${serviceName} (${i})`;
-      }
-
-      appData.services[serviceName] = +price;
-      // appData.services[name.trim()] = +price;
-    }
-
-    appData.adaptive = confirm("Нужен ли адаптив на сайте?");
-  },
-
   // высчитываем стоимость услуг и экранов
   addPrices: function () {
-    // 2) ИСПОЛЬЗОВАНИЕ REDUCE для расчета screenPrice
-    appData.screenPrice = appData.screens.reduce(function(sum, screen) {
-      return sum + screen.price;
-    }, 0);
-
-    // Расчет суммы доп. услуг (сбрасываем в 0 перед расчетом на всякий случай)
-    appData.allServicePrices = 0;
-    for (let key in appData.services) {
-      appData.allServicePrices += appData.services[key];
+    for (let screen of appData.screens) {
+      appData.screenPrice += +screen.price;
     }
-  },  
 
-  // Сумма верстки и доп. услуг
-  getFullPrice: function () {
-    appData.fullPrice = +appData.screenPrice + appData.allServicePrices;
-  },
+    for (let key in appData.servicesNumber) {
+      appData.servicePricesNumber += appData.servicesNumber[key];
+    }
+
+    for (let key in appData.servicesPercent) {
+      appData.servicePricesPercent += appData.screenPrice * (appData.servicesPercent[key] / 100);
+    }
+
+    appData.fullPrice = +appData.screenPrice + appData.servicePricesNumber + appData.servicePricesPercent;
+  },  
 
   // Итоговая стоимость за вычетом отката
   getServicePercentPrice: function () {
     appData.servicePercentPrice = appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
-  },
-
-  // Форматируем заголовок
-  getTitle: function () {
-    appData.title = appData.title.trim()[0].toUpperCase() + appData.title.trim().substr(1).toLowerCase();
   },
 
   // Сообщение о скидке
@@ -132,7 +151,6 @@ const appData = {
 
   // Вывод информации в консоль
   logger: function () {
-    // Обязательные выводы по условию
     console.log("fullPrice", appData.fullPrice);
     console.log("Откат", appData.servicePercentPrice);
     console.log("Массив экранов:", appData.screens);
@@ -142,4 +160,4 @@ const appData = {
 };
 
 // Вызов вне объекта
-appData.start();
+appData.init();
