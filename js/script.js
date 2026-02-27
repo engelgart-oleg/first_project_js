@@ -24,8 +24,9 @@ const appData = {
   title: '',
   screens: [],
   screenPrice: 0,
+  countScreens: 0,
   adaptive: true,
-  rollback: 10,
+  rollback: 0,     // Изначально 0, как в ползунке
   servicePricesPercent: 0,
   servicePricesNumber: 0,
   fullPrice: 0,
@@ -38,28 +39,69 @@ const appData = {
 
     startBtn.addEventListener('click', appData.start);
     buttonPlus.addEventListener('click', appData.addScreenBlock);
+
+    // Обработчик для ползунка отката
+    inputRange.addEventListener('input', function(event) {
+      const value = event.target.value;
+      inputRangeValue.textContent = value + '%'; // Меняем текст в span
+      appData.rollback = +value;                 // Записываем в свойство объекта
+    });
+
+    //  Поиск первого инпута для метода blockNonNumbers
+    const firstScreenInput = screens[0].querySelector('input');
+    firstScreenInput.addEventListener('input', appData.blockNonNumbers);
   },
+
   addTitle: function () {
     // <title>Document</title> переименовали в Калькулятор верстки
     document.title = title.textContent;   
   },
 
+  // Метод запрета ввода букв и пробелов
+  // Регулярное выражение /\D/g ищет ВСЁ, кроме цифр, и меняет на пустую строку
+  blockNonNumbers: function(event) {
+      event.target.value = event.target.value.replace(/\D/g, '');
+  },
+
   // Метод управления программой
-  start: function () {    
+  start: function () {  
+    // Валидация: проверяем каждый блок .screen
+    const screensElements = document.querySelectorAll(".screen");
+    let isValid = true;
+
+    screensElements.forEach(screen => {
+      const select = screen.querySelector('select');
+      const input = screen.querySelector('input');
+      if (select.value === "" || input.value === "") {
+          isValid = false;
+      }
+    });
+
+    if (!isValid) {
+        alert("Пожалуйста, выберите тип экрана и его количество в каждом блоке!");
+        return; // Прерываем выполнение метода
+    }
+
+    // Очистка данных перед новым расчетом
+    appData.screens = [];
+    appData.screenPrice = 0;
+    appData.countScreens = 0;
+    appData.servicePricesNumber = 0;
+    appData.servicePricesPercent = 0;
+
     appData.addScreens();
     appData.addServices();
-
     appData.addPrices();
-    // appData.getServicePercentPrice();
-
     // appData.logger();
     appData.showResult();
   },
 
   showResult: function () {
     total.value = appData.screenPrice;
+    totalCount.value = appData.countScreens; // Вывод кол-ва экранов
     totalCountOther.value = appData.servicePricesPercent + appData.servicePricesNumber;
     fullTotalCount.value = appData.fullPrice;
+    totalCountRollback.value = appData.servicePercentPrice; // Вывод с учетом отката
   },
 
   addScreens: function () {
@@ -73,13 +115,17 @@ const appData = {
       appData.screens.push({
         id: index,
         name: selectName.trim(),
-        price: +select.value * +input.value
+        price: +select.value * +input.value,
+        count: +input.value // Добавлено свойство count
       });      
     })   
-    console.log(appData.screens);
   },
 
   addServices: function () {
+    // Очищаем объекты перед заполнением
+    appData.servicesPercent = {};
+    appData.servicesNumber = {};
+
     otherItemsPercent.forEach(function (item) {
       const check = item.querySelector('input[type=checkbox]');
       const label = item.querySelector('label');
@@ -87,8 +133,8 @@ const appData = {
 
       if (check.checked) {
         appData.servicesPercent[label.textContent] = +input.value;
-      }   
-    })
+      }
+    });
 
     otherItemsNumber.forEach(function (item) {
       const check = item.querySelector('input[type=checkbox]');
@@ -97,27 +143,28 @@ const appData = {
 
       if (check.checked) {
         appData.servicesNumber[label.textContent] = +input.value;
-      }   
-    })
+      }
+    });
   },
 
   addScreenBlock: function () {
+    // Обновляем коллекцию перед клонированием
+    const screensElements = document.querySelectorAll(".screen");
     const cloneScreen = screens[0].cloneNode(true); 
+    const cloneInput = cloneScreen.querySelector('input');
 
-    console.log(cloneScreen);  
-    screens[screens.length - 1].after(cloneScreen);
+    // Вешаем запрет на ввод букв и пробелов для нового клона
+    cloneInput.value = "";
+    cloneInput.addEventListener('input', appData.blockNonNumbers);
+
+    screensElements[screensElements.length - 1].after(cloneScreen);
   },
 
-  // Проверка на строку (не пропускает только цифры)
-  isString: function (str) {
-    // Проверяем: не null, не пусто, и при превращении в число выдает NaN (значит, там есть буквы)
-    return str !== null && str.trim() !== "" && isNaN(str);
-  },
-
-  // высчитываем стоимость услуг и экранов
+  // Dысчитываем стоимость услуг и экранов
   addPrices: function () {
     for (let screen of appData.screens) {
       appData.screenPrice += +screen.price;
+      appData.countScreens += screen.count; // Считаем общее кол-во
     }
 
     for (let key in appData.servicesNumber) {
@@ -129,29 +176,14 @@ const appData = {
     }
 
     appData.fullPrice = +appData.screenPrice + appData.servicePricesNumber + appData.servicePricesPercent;
+
+    // Kогика расчета дохода с учетом отката
+    appData.servicePercentPrice = Math.ceil(appData.fullPrice - (appData.fullPrice * (appData.rollback / 100)));
   },  
 
-  // Итоговая стоимость за вычетом отката
-  getServicePercentPrice: function () {
-    appData.servicePercentPrice = appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
-  },
-
-  // Сообщение о скидке
-  getRollbackMessage: function (price) {
-    if (price >= 30000) {
-      return "Даем скидку в 10%";
-    } else if (price >= 15000 && price < 30000) {
-      return "Даем скидку в 5%";
-    } else if (price >= 0 && price < 15000) {
-      return "Скидка не предусмотрена";
-    } else {
-      return "Что-то пошло не так";
-    }
-  },
-
-  // Вывод информации в консоль
   logger: function () {
     console.log("fullPrice", appData.fullPrice);
+    console.log("Количество экранов:", appData.countScreens);
     console.log("Откат", appData.servicePercentPrice);
     console.log("Массив экранов:", appData.screens);
     console.log("Стоимость всех экранов:", appData.screenPrice);
@@ -159,5 +191,4 @@ const appData = {
   }  
 };
 
-// Вызов вне объекта
 appData.init();
